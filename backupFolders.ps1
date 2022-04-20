@@ -14,45 +14,27 @@
     author: Martin Pucovski (martinautomates.com)
 #>
 
-# ==============================
-#
-# SETTINGS and CONSTANTS
-#
-
-# how many days should the old backups be kept
-[int32] $daysToKeep = 7
-
-# names of folders that should be backed up
-[array] $folderNames = @(
-                        "test"
-                        "test2"
-                        )
-
-# source path
-[string] $sourceFolder = "C:\sourcePath"
-
-# destination path
-[string] $destinationFolder = "C:\destinationPath"
-
-# ==============================
-
+# initials
 $scriptName = $MyInvocation.MyCommand.Name
 $host.ui.RawUI.WindowTitle = $scriptName
 
+# read config file
+$configFile = Import-PowerShellDataFile -Path .\Config\config.psd1
+
 # check destination path
-if (!(Test-Path -Path $destinationFolder)) {
-    New-Item -Path $destinationFolder -ItemType Directory
+if (!(Test-Path -Path $configFile['DestinationPath'])) {
+    New-Item -Path $configFile['DestinationPath'] -ItemType Directory
 }
 
 # create a robot backup directory
 $currentDate = Get-Date -Format "yyyyMMdd_HHmmss"
-$backupFolderName = Join-Path -Path $destinationFolder -ChildPath $currentDate
+$backupFolderName = Join-Path -Path $configFile['DestinationPath'] -ChildPath $currentDate
 New-Item -Path $backupFolderName -ItemType Directory
 
 # backup each folder
-foreach ($oneFolder in $folderNames) {
+foreach ($oneFolder in $configFile['FolderNames']) {
     Write-Host "Start copy $oneFolder"
-    $sourcePath = Join-Path -Path $sourceFolder -ChildPath $oneFolder
+    $sourcePath = Join-Path -Path $configFile['SourcePath'] -ChildPath $oneFolder
     $destinationPath = Join-Path -Path $backupFolderName -ChildPath $oneFolder
 
     robocopy $sourcePath $destinationPath /e
@@ -60,8 +42,8 @@ foreach ($oneFolder in $folderNames) {
 }
 
 # remove old backups
-$daysToKeep = $daysToKeep * (-1)
-$allFolders = Get-ChildItem -Path $destinationFolder -Directory | Where-Object {$_.CreationTime -lt (Get-Date).AddDays($daysToKeep)}
+$daysToKeep = $configFile['DaysToKeep'] * (-1)
+$allFolders = Get-ChildItem -Path $configFile['DestinationPath'] -Directory | Where-Object { $_.CreationTime -lt (Get-Date).AddDays($daysToKeep) }
 foreach ($backupFolder in $allFolders) {
     $folderFullName = $backupFolder.FullName
     Write-Host "Removing $folderFullName"
