@@ -23,7 +23,10 @@
 [int32] $daysToKeep = 7
 
 # names of folders that should be backed up
-[string] $folderNames = @("test", "test2")
+[array] $folderNames = @(
+                        "test"
+                        "test2"
+                        )
 
 # source path
 [string] $sourceFolder = "C:\sourcePath"
