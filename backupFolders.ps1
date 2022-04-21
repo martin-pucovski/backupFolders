@@ -15,11 +15,13 @@
 #>
 
 # initials
+$scriptLocation = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $scriptName = $MyInvocation.MyCommand.Name
 $host.ui.RawUI.WindowTitle = $scriptName
 
 # read config file
-$configFile = Import-PowerShellDataFile -Path .\Config\config.psd1
+$configPath = Join-Path -Path $scriptLocation -ChildPath "Config\config.psd1"
+$configFile = Import-PowerShellDataFile -Path $configPath
 
 # check destination path
 if (!(Test-Path -Path $configFile['DestinationPath'])) {
